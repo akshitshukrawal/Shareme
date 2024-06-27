@@ -7,7 +7,7 @@ import { userCreatedPinsQuery,userQuery,userSavedPinsQuery } from '../utils/data
 import { client } from '../client';
 import MasonryLayout from './MasonryLayout';
 import Spinner from './Spinner';
-
+import { fetchUser } from '../utils/fetchUser';
 const randomImage = 'https://source.unsplash.com/1600x900/?nature,landscape,city';
 
 
@@ -22,7 +22,7 @@ const UserProfile = () => {
   const [activeBtn,setActiveBtn] = useState('Created');
   const navigate = useNavigate();
   const {userId} = useParams();
-
+  const profileUser = fetchUser();
   useEffect(() => {
     const query = userQuery(userId);
 
@@ -40,14 +40,15 @@ const UserProfile = () => {
         setPins(data);
       })
     }else{
-      const savedPinsQuery = userSavedPinsQuery(userId);
-
-      client.fetch(savedPinsQuery)
-      .then((data)=>{
-        setPins(data);
-      })
+      if(userId === profileUser?.googleId){
+        const savedPinsQuery = userSavedPinsQuery(userId);
+        
+        client.fetch(savedPinsQuery)
+        .then((data)=>{
+          setPins(data);
+        })
+      }
     }
-
   },[text,userId])
   
   const logout = () =>{
@@ -70,7 +71,7 @@ const UserProfile = () => {
               {user.userName}
             </h1>
             <div className='absolute top-0 z-1 right-0 p-2'>
-              {userId === user._id && (
+              {userId === user._id && userId ===profileUser?.googleId && (
                 <GoogleLogout 
                   clientId={`${process.env.REACT_APP_GOOGLE_API_TOKEN}`}
                   render={(renderProps) => (
@@ -99,7 +100,9 @@ const UserProfile = () => {
             className={`${activeBtn==='Created' ? activeBtnStyles : notActiveBtnStyles}`}>
               Created
             </button>
-            <button
+            {
+              userId===profileUser?.googleId && (
+                <button
             type='button'
             onClick={(e)=>{
               setText(e.target.textContent);
@@ -108,6 +111,9 @@ const UserProfile = () => {
             className={`${activeBtn==='Saved' ? activeBtnStyles : notActiveBtnStyles}`}>
               Saved
             </button>
+              )
+            }
+            
           </div>
           {pins?.length ? (
           <div className='px-2'>

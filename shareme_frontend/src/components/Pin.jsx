@@ -16,7 +16,8 @@ const Pin = ({ pin: { postedBy, image, _id, destination, save } }) => {
 
   const savePin = (id) => {
     if (!alreadySaved) {
-      client
+      if(user?.googleId){
+        client
         .patch(id)
         .setIfMissing({ save: [] })
         .insert('after', 'save[-1]', [{
@@ -30,6 +31,7 @@ const Pin = ({ pin: { postedBy, image, _id, destination, save } }) => {
         .commit().then(() => {
           window.location.reload();
         });
+      }
     }
   };
 
@@ -71,16 +73,21 @@ const Pin = ({ pin: { postedBy, image, _id, destination, save } }) => {
                   Saved
                 </button>
               ) : (
+                user?.googleId ?(
+
                 <button
                   type='button'
                   className='bg-red-500 opacity-75 hover:opacity-100 text-white font-bold px-5 py-1 text-base rounded-3xl hover:shadow-md outlined-none '
                   onClick={(e) => {
-                    e.stopPropagation();
-                    savePin(_id);
+                    if(_id){
+                      e.stopPropagation();
+                      savePin(_id);
+                    }
                   }}
                 >
                   Save
                 </button>
+                ):(null)
               )}
             </div>
             <div className='flex justify-between items-center gap-2 w-full'>
